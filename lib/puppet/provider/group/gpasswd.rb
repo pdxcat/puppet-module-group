@@ -78,21 +78,23 @@ Puppet::Type.type(:group).provide(:gpasswd) do
       execute(cmd)
     else
       begin
-        groupfile_path_new = '/etc/group.puppettmp'
-        groupfile_path_old = '/etc/group'
-        groupfile_new = File.open(groupfile_path_new, 'w')
-        groupfile_old = File.foreach(groupfile_path_old) do |line|
+        groupfile_path_tmp = '/etc/group.puppettmp'
+        groupfile_path = '/etc/group'
+        groupfile_tmp = File.open(groupfile_path_tmp, 'w')
+        groupfile = File.foreach(groupfile_path) do |line|
           if groupline = line.match(/^#{@resource[:name]}:[x*]?:[0-9]+:/)
-            Puppet.debug "Writing members " << value.join(',') << " to " << groupfile_path_new
-            groupfile_new.puts groupline[0] + value.join(',')
+            Puppet.debug "Writing members " << value.join(',') << " to " << groupfile_path_tmp
+            groupfile_tmp.puts groupline[0] + value.join(',')
           else
-            groupfile_new.puts line
+            groupfile_tmp.puts line
           end
         end
-        Puppet.debug "Saving " << groupfile_path_new << " to " << groupfile_path_old
-        FileUtils.mv(groupfile_path_new, groupfile_path_old)
+        groupfile_tmp.fsync
+        groupfile_tmp.close 
+        Puppet.debug "Saving " << groupfile_path_tmp << " to " << groupfile_path
+        File.rename(groupfile_path_tmp, groupfile_path)
       rescue Exception => e
-        FileUtils.deleteQuietly(groupfile_new)
+        FileUtils.deleteQuietly(groupfile_tmp)
         raise Puppet::Error.new(e.message)
       end
     end
