@@ -13,7 +13,6 @@ Puppet::Type.type(:group).provide(:gpasswd) do
   )
 
   optional_commands :gpasswd => "/usr/bin/gpasswd"
-  confine :operatingsystem => [ :ubuntu, :solaris ]
   has_feature :manages_members
 
   def create
@@ -48,6 +47,18 @@ Puppet::Type.type(:group).provide(:gpasswd) do
     end
   end 
 
+  def gpasswd_installed?
+    if command('gpasswd')
+      confine :true => begin
+        gpasswd('--help')
+        rescue Puppet::ExecutionFailure
+          return false
+        else
+          return true
+        end
+    end
+  end
+
   def gid
     @group ||= Etc.getgrnam @resource[:name]
     return @group.gid
@@ -71,8 +82,8 @@ Puppet::Type.type(:group).provide(:gpasswd) do
   end
 
   def members=(value)
-    case Facter.value(:operatingsystem)
-    when "Ubuntu"
+    case gpasswd_installed?
+    when true
       cmd = [command(:gpasswd)]
       cmd << '-M' << value.join(',') << @resource[:name]
       execute(cmd)
