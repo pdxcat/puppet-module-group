@@ -3,17 +3,15 @@ require 'etc'
 require 'fileutils'
 
 Puppet::Type.type(:group).provide(:gpasswd) do
-  desc "Group management using gpasswd and getent."
+  desc "Group management using groupmod and gpasswd."
 
   commands(
     :groupadd => "/usr/sbin/groupadd",
     :groupdel => "/usr/sbin/groupdel",
     :groupmod => "/usr/sbin/groupmod",
-    :getent   => "/usr/bin/getent"
+    :gpasswd  => "/usr/bin/gpasswd"
   )
 
-  optional_commands :gpasswd => "/usr/bin/gpasswd"
-  confine :operatingsystem => [ :ubuntu, :solaris ]
   has_feature :manages_members
 
   def create
