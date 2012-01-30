@@ -2,7 +2,7 @@ require 'puppet'
 require 'etc'
 require 'fileutils'
 
-Puppet::Type.type(:group).provide(:gpw) do
+Puppet::Type.type(:group).provide(:gfilepw) do
   desc "Group management using pw."
 
   commands(
@@ -64,9 +64,26 @@ Puppet::Type.type(:group).provide(:gpw) do
   end
 
   def members=(value)
-    cmd = [command(:pw), "groupmod"]
-    cmd << @resource[:name] << '-M' << value.join(',')
-    execute(cmd)
+    begin
+      groupfile_path_tmp = '/etc/group.puppettmp'
+      groupfile_path = '/etc/group'
+      groupfile_tmp = File.open(groupfile_path_tmp, 'w')
+      groupfile = File.foreach(groupfile_path) do |line|
+        if groupline = line.match(/^#{@resource[:name]}:[x*]?:[0-9]+:/)
+          Puppet.debug "Writing members " << value.join(',') << " to " << groupfile_path_tmp
+          groupfile_tmp.puts groupline[0] + value.join(',')
+        else
+          groupfile_tmp.puts line
+        end
+      end
+      groupfile_tmp.fsync
+      groupfile_tmp.close 
+      Puppet.debug "Saving " << groupfile_path_tmp << " to " << groupfile_path
+      File.rename(groupfile_path_tmp, groupfile_path)
+    rescue Exception => e
+      FileUtils.deleteQuietly(groupfile_tmp)
+      raise Puppet::Error.new(e.message)
+    end
   end
 
 end
