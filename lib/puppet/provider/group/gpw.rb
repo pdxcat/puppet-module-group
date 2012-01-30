@@ -2,26 +2,22 @@ require 'puppet'
 require 'etc'
 require 'fileutils'
 
-Puppet::Type.type(:group).provide(:gpasswd) do
-  desc "Group management using groupmod and gpasswd."
+Puppet::Type.type(:group).provide(:gpw) do
+  desc "Group management using pw."
 
   commands(
-    :groupadd => "/usr/sbin/groupadd",
-    :groupdel => "/usr/sbin/groupdel",
-    :groupmod => "/usr/sbin/groupmod",
-    :gpasswd  => "/usr/bin/gpasswd"
+    :pw => "/usr/sbin/pw",
   )
 
   has_feature :manages_members
 
   def create
-    cmd = [command(:groupadd)]
+    cmd = [command(:pw), "groupadd"]
     if gid = @resource.should(:gid)
       unless gid == :absent
         cmd << '-g' << gid
       end
     end
-    cmd << "-o" if @resource.allowdupe?
     cmd << @resource[:name]
     execute(cmd)
     if members = @resource.should(:members)
@@ -32,7 +28,7 @@ Puppet::Type.type(:group).provide(:gpasswd) do
   end
 
   def delete
-    cmd = [command(:groupdel)]
+    cmd = [command(:pw), "groupdel"]
     cmd << @resource[:name]
     execute(cmd) 
   end
@@ -52,8 +48,7 @@ Puppet::Type.type(:group).provide(:gpasswd) do
   end
 
   def gid=(gid)
-    cmd = [command(:groupmod)]
-    cmd << "-o" if @resource.allowdupe?
+    cmd = [command(:pw), "groupmod"]
     cmd << '-g' << gid << @resource[:name]
     execute(cmd) 
   end
@@ -69,7 +64,7 @@ Puppet::Type.type(:group).provide(:gpasswd) do
   end
 
   def members=(value)
-    cmd = [command(:gpasswd)]
+    cmd = [command(:pw), "groupmod"]
     cmd << '-M' << value.join(',') << @resource[:name]
     execute(cmd)
   end

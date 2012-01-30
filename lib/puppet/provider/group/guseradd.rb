@@ -2,7 +2,7 @@ require 'puppet'
 require 'etc'
 require 'fileutils'
 
-Puppet::Type.type(:group).provide(:groupfile) do
+Puppet::Type.type(:group).provide(:ggroupadd) do
   desc "Group management using groupmod and file editing."
 
   commands(
