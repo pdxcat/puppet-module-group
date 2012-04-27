@@ -1,5 +1,5 @@
 name    'pdxcat-group'
-version '2012.03.22'
+version '0.0.2'
 source 'https://github.com/pdxcat/puppet-module-group'
 author 'Computer Action Team'
 license 'Apache License 2.0'
