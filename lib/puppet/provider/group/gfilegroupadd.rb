@@ -84,7 +84,7 @@ Puppet::Type.type(:group).provide(:gfilegroupadd) do
       Puppet.debug "Saving " << groupfile_path_tmp << " to " << groupfile_path
       File.rename(groupfile_path_tmp, groupfile_path)
     rescue Exception => e
-      File.delete(groupfile_tmp) if File.exist?(groupfile_tmp)
+      File.delete(groupfile_path_tmp) if File.exist?(groupfile_path_tmp)
       raise Puppet::Error.new(e.message)
     end
   end
