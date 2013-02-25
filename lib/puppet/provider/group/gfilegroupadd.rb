@@ -23,7 +23,7 @@ Puppet::Type.type(:group).provide(:gfilegroupadd) do
     cmd << "-o" if @resource.allowdupe?
     cmd << @resource[:name]
     execute(cmd)
-    if members = @resource.should(:members)
+    if members == @resource.should(:members)
       unless members == :absent
         self.members=(members)
       end
