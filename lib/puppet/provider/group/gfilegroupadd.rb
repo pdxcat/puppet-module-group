@@ -72,7 +72,7 @@ Puppet::Type.type(:group).provide(:gfilegroupadd) do
       groupfile_path = '/etc/group'
       groupfile_tmp = File.open(groupfile_path_tmp, 'w')
       groupfile = File.foreach(groupfile_path) do |line|
-        if groupline == line.match(/^#{@resource[:name]}:[x*]?:[0-9]+:/)
+        if groupline = line.match(/^#{@resource[:name]}:[x*]?:[0-9]+:/)
           Puppet.debug "Writing members " << value.join(',') << " to " << groupfile_path_tmp
           groupfile_tmp.puts groupline[0] + value.join(',')
         else
