@@ -1,3 +1,5 @@
+# Based on ggroupadd.pp from https://github.com/pdxcat/puppet-module-group .
+# Added: SLES support ie. use groupmod -A instead of gpasswd -M.
 require 'puppet'
 require 'etc'
 require 'fileutils'
@@ -69,8 +71,16 @@ Puppet::Type.type(:group).provide(:ggroupadd) do
   end
 
   def members=(value)
-    cmd = [command(:gpasswd)]
-    cmd << '-M' << value.join(',') << @resource[:name]
+    case Facter.value(:operatingsystem)
+      when 'SLES'
+        cmd = [command(:groupmod)]
+        cmd << '-A' << value.join(',') << @resource[:name]
+      else
+        cmd = [command(:gpasswd)]
+        cmd << '-M' << value.join(',') << @resource[:name]
+    end
     execute(cmd)
   end
 end
+
+# end of file.
